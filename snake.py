@@ -144,7 +144,7 @@ def check_collisions():
         apple_y = random.randint(0, (WINDOW_HEIGHT - SNAKE_SIZE) // SNAKE_SIZE) * SNAKE_SIZE
         apple_coord = (apple_x, apple_y, SNAKE_SIZE, SNAKE_SIZE)
         apple_rect = pygame.Rect(apple_coord)
-        body_coords.append(head_coord))
+        body_coords.append(head_coord)
 
 def blit_hud():
     display_surface.blit(title_text, title_rect)
