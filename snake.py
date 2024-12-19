@@ -51,18 +51,20 @@ continue_text, continue_rect = create_text_and_rect("Press any key to play again
 pick_up_sound = pygame.mixer.Sound("pick_up_sound.wav")
 
 # Set images
-apple_coord = (500, 500, SNAKE_SIZE, SNAKE_SIZE)
-apple_rect = pygame.draw.rect(display_surface, RED, apple_coord)
+apple_x = random.randint(0, (WINDOW_WIDTH - SNAKE_SIZE) // SNAKE_SIZE) * SNAKE_SIZE
+apple_y = random.randint(0, (WINDOW_HEIGHT - SNAKE_SIZE) // SNAKE_SIZE) * SNAKE_SIZE
+apple_coord = (apple_x, apple_y, SNAKE_SIZE, SNAKE_SIZE)
+apple_rect = pygame.Rect(apple_coord)
 
 head_coord = (head_x, head_y, SNAKE_SIZE, SNAKE_SIZE)
-head_rect = pygame.draw.rect(display_surface, GREEN, head_coord)
+head_rect = pygame.Rect(head_coord)
 
 body_coords = []
-
 
 # The main game loop
 running = True
 is_paused = False
+is_game_start = True  # Flag for game start
 
 def move_snake(event):
     global snake_dx, snake_dy
@@ -83,15 +85,16 @@ def move_snake(event):
 
 def check_quit(event):
     global running
-    if event.type == pygame. QUIT:
+    if event.type == pygame.QUIT:
         running = False
 
 def check_events():
-    global running
+    global running, is_game_start
     for event in pygame.event.get():
         check_quit(event)
         move_snake(event)
-
+        if is_game_start and event.type == pygame.KEYDOWN:
+            is_game_start = False  # Start the game after the first key press
 
 def handle_snake():
     global body_coords, head_x, head_y, head_coord, head_rect
@@ -104,7 +107,7 @@ def handle_snake():
     head_rect = pygame.Rect(head_coord)
 
 def reset_game_after_game_over(event):
-    global is_paused, score, head_x, head_y, head_coord, body_coords, snake_dx, snake_dy
+    global is_paused, score, head_x, head_y, head_coord, body_coords, snake_dx, snake_dy, apple_x, apple_y, apple_coord, apple_rect
     if event.type == pygame.KEYDOWN:
         score = 0
         head_x = WINDOW_WIDTH // 2
@@ -113,6 +116,10 @@ def reset_game_after_game_over(event):
         body_coords = []
         snake_dx = 0
         snake_dy = 0
+        apple_x = random.randint(0, (WINDOW_WIDTH - SNAKE_SIZE) // SNAKE_SIZE) * SNAKE_SIZE
+        apple_y = random.randint(0, (WINDOW_HEIGHT - SNAKE_SIZE) // SNAKE_SIZE) * SNAKE_SIZE
+        apple_coord = (apple_x, apple_y, SNAKE_SIZE, SNAKE_SIZE)
+        apple_rect = pygame.Rect(apple_coord)
         is_paused = False
 
 def check_end_game_after_game_over(event):
@@ -123,8 +130,8 @@ def check_end_game_after_game_over(event):
 
 def check_game_over():
     global running, is_paused
-    if (head_x < 0 or head_x >= WINDOW_WIDTH or 
-        head_y < 0 or head_y >= WINDOW_HEIGHT or 
+    if (head_x < 0 or head_x >= WINDOW_WIDTH or
+        head_y < 0 or head_y >= WINDOW_HEIGHT or
         head_coord in body_coords[1:]):  # Ignore the head itself
         display_surface.blit(game_over_text, game_over_rect)
         display_surface.blit(continue_text, continue_rect)
@@ -147,9 +154,11 @@ def check_collisions():
         body_coords.append(head_coord)
 
 def blit_hud():
-    display_surface.blit(title_text, title_rect)
-    display_surface.blit(score_text, score_rect)
-
+    # Only blit the title text if the game has just started
+    if is_game_start:
+        display_surface.blit(title_text, title_rect)
+    else:
+        display_surface.blit(score_text, score_rect)
 
 def blit_assets():
     for body in body_coords:
@@ -162,32 +171,24 @@ def update_display_and_tick_clock():
     clock.tick(FPS)
 
 while running:
-    # Check pygame events
+
     check_events()
 
-    # Handle growing and manipulating the snake
     handle_snake()
 
-    # Check for game over
     check_game_over()
 
-    # Check for collisions
     check_collisions()
 
     # Update HUD
     score_text = font.render("Score: " + str(score), True, GREEN, DARKRED)
 
-    # Fill the surface
     display_surface.fill(WHITE)
 
-    # Blit HUD
     blit_hud()
 
-    # Blit assets
     blit_assets()
 
-    # Update display and tick clock
     update_display_and_tick_clock()
 
-# End the game
 pygame.quit()
